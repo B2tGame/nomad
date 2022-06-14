@@ -293,6 +293,9 @@ type Config struct {
 
 	// Artifact configuration from the agent's config file.
 	Artifact *ArtifactConfig
+
+	// Public IP Reolver endpoint
+	IpResolverEndpoint string
 }
 
 // ClientTemplateConfig is configuration on the client specific to template
