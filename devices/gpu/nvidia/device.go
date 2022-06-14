@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"strconv"
 
 	log "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/nomad/devices/gpu/nvidia/nvml"
@@ -69,6 +70,10 @@ var (
 			hclspec.NewAttr("fingerprint_period", "string", false),
 			hclspec.NewLiteral("\"1m\""),
 		),
+		"gpu_multiple": hclspec.NewDefault(
+			hclspec.NewAttr("gpu_multiple", "string", false),
+			hclspec.NewLiteral("\"2\""),
+		),
 	})
 )
 
@@ -77,6 +82,7 @@ type Config struct {
 	Enabled           bool     `codec:"enabled"`
 	IgnoredGPUIDs     []string `codec:"ignored_gpu_ids"`
 	FingerprintPeriod string   `codec:"fingerprint_period"`
+	GpuMultiple       string   `codec:"gpu_multiple"`
 }
 
 // NvidiaDevice contains all plugin specific data
@@ -97,11 +103,15 @@ type NvidiaDevice struct {
 	// fingerprintPeriod is how often we should call nvml to get list of devices
 	fingerprintPeriod time.Duration
 
+	gpuMultiple int
+
 	// devices is the set of detected eligible devices
 	devices    map[string]struct{}
 	deviceLock sync.RWMutex
 
 	logger log.Logger
+
+
 }
 
 // NewNvidiaDevice returns a new nvidia device plugin.
@@ -150,7 +160,7 @@ func (d *NvidiaDevice) SetConfig(cfg *base.Config) error {
 		return fmt.Errorf("failed to parse fingerprint period %q: %v", config.FingerprintPeriod, err)
 	}
 	d.fingerprintPeriod = period
-
+	d.gpuMultiple, err = strconv.Atoi(config.GpuMultiple)
 	return nil
 }
 
@@ -197,16 +207,20 @@ func (d *NvidiaDevice) Reserve(deviceIDs []string) (*device.ContainerReservation
 	// The latest and always valid version of fingerprinted ids are stored in
 	// d.devices map. To avoid this race condition an error is returned if
 	// any of provided deviceIDs is not found in d.devices map
-	d.deviceLock.RLock()
-	var notExistingIDs []string
-	for _, id := range deviceIDs {
-		if _, deviceIDExists := d.devices[id]; !deviceIDExists {
-			notExistingIDs = append(notExistingIDs, id)
-		}
-	}
-	d.deviceLock.RUnlock()
-	if len(notExistingIDs) != 0 {
-		return nil, &reservationError{notExistingIDs}
+	// d.deviceLock.RLock()
+	// var notExistingIDs []string
+	// for _, id := range deviceIDs {
+	//	if _, deviceIDExists := d.devices[id]; !deviceIDExists {
+	//		notExistingIDs = append(notExistingIDs, id)
+	//	}
+	// }
+	// d.deviceLock.RUnlock()
+	// if len(notExistingIDs) != 0 {
+	// 	return nil, &reservationError{notExistingIDs}
+	// }
+
+	for i, deviceID := range deviceIDs {
+		deviceIDs[i] = deviceID[0:len(deviceID)-5]
 	}
 
 	return &device.ContainerReservation{

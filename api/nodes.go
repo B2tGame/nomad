@@ -830,12 +830,15 @@ type NodeListStub struct {
 	ID                    string
 	Datacenter            string
 	Name                  string
+	Meta                  map[string]string
+	Attributes            map[string]string
 	NodeClass             string
 	Version               string
 	Drain                 bool
 	SchedulingEligibility string
 	Status                string
 	StatusDescription     string
+	StatusUpdatedAt       int64
 	Drivers               map[string]*DriverInfo
 	NodeResources         *NodeResources         `json:",omitempty"`
 	ReservedResources     *NodeReservedResources `json:",omitempty"`

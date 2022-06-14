@@ -3,6 +3,7 @@ package nvidia
 import (
 	"context"
 	"time"
+	"fmt"
 
 	"github.com/hashicorp/nomad/devices/gpu/nvidia/nvml"
 	"github.com/hashicorp/nomad/helper"
@@ -25,6 +26,7 @@ const (
 
 // fingerprint is the long running goroutine that detects hardware
 func (d *NvidiaDevice) fingerprint(ctx context.Context, devices chan<- *device.FingerprintResponse) {
+
 	defer close(devices)
 
 	if d.initErr != nil {
@@ -91,7 +93,7 @@ func (d *NvidiaDevice) writeFingerprintToChannel(devices chan<- *device.Fingerpr
 	// Build Fingerprint response with computed groups and send it over the channel
 	deviceGroups := make([]*device.DeviceGroup, 0, len(deviceListByDeviceName))
 	for groupName, devices := range deviceListByDeviceName {
-		deviceGroups = append(deviceGroups, deviceGroupFromFingerprintData(groupName, devices, commonAttributes))
+		deviceGroups = append(deviceGroups, deviceGroupFromFingerprintData(groupName, devices, commonAttributes, d.gpuMultiple))
 	}
 	devices <- device.NewFingerprint(deviceGroups...)
 }
@@ -138,22 +140,23 @@ func (d *NvidiaDevice) fingerprintChanged(allDevices []*nvml.FingerprintDeviceDa
 }
 
 // deviceGroupFromFingerprintData composes deviceGroup from FingerprintDeviceData slice
-func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.FingerprintDeviceData, commonAttributes map[string]*structs.Attribute) *device.DeviceGroup {
+func deviceGroupFromFingerprintData(groupName string, deviceList []*nvml.FingerprintDeviceData, commonAttributes map[string]*structs.Attribute, gpuMultiple int) *device.DeviceGroup {
 	// deviceGroup without devices makes no sense -> return nil when no devices are provided
+
 	if len(deviceList) == 0 {
 		return nil
 	}
 
-	devices := make([]*device.Device, len(deviceList))
+	devices := make([]*device.Device, len(deviceList)*gpuMultiple)
 	for index, dev := range deviceList {
-		devices[index] = &device.Device{
-			ID: dev.UUID,
-			// all fingerprinted devices are "healthy" for now
-			// to get real health data -> dcgm bindings should be used
-			Healthy: true,
-			HwLocality: &device.DeviceLocality{
-				PciBusID: dev.PCIBusID,
-			},
+		for idx := 0; idx < gpuMultiple; idx++ {
+			devices[index*gpuMultiple + idx] = &device.Device{
+				ID: dev.UUID + "-" + fmt.Sprintf("%04d", idx),
+				Healthy: true,
+				HwLocality: &device.DeviceLocality{
+					PciBusID: dev.PCIBusID,
+				},
+			}
 		}
 	}
 

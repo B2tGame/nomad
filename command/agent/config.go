@@ -308,6 +308,8 @@ type ClientConfig struct {
 
 	// ExtraKeysHCL is used by hcl to surface unexpected keys
 	ExtraKeysHCL []string `hcl:",unusedKeys" json:"-"`
+
+	IpResolverEndpoint string `hcl:"ip_resolver_endpoint"`
 }
 
 // ClientTemplateConfig is configuration on the client specific to template
@@ -1693,6 +1695,10 @@ func (a *ClientConfig) Merge(b *ClientConfig) *ClientConfig {
 
 	if b.BindWildcardDefaultHostNetwork {
 		result.BindWildcardDefaultHostNetwork = true
+	}
+
+	if b.IpResolverEndpoint != "" {
+		result.IpResolverEndpoint = b.IpResolverEndpoint
 	}
 	return &result
 }

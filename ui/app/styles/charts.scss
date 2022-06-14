@@ -30,3 +30,8 @@
     --faint-color: #{change-color($yellow-400, $alpha: 0.1)};
   }
 }
+
+
+.topo-viz-node.is-empty {
+  display: none;
+}

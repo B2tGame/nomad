@@ -21,7 +21,7 @@ export default class TopologyControllers extends Controller {
 
   @computed('model.nodes.@each.datacenter')
   get datacenters() {
-    return Array.from(new Set(this.model.nodes.mapBy('datacenter'))).compact();
+    return Array.from(new Set(this.model.nodes.filterBy('status', 'ready').mapBy('datacenter'))).compact();
   }
 
   @computed('model.allocations.@each.isScheduled')
@@ -31,13 +31,19 @@ export default class TopologyControllers extends Controller {
 
   @computed('model.nodes.@each.resources')
   get totalMemory() {
-    const mibs = this.model.nodes.mapBy('resources.memory').reduce(sumAggregator, 0);
+    const mibs = this.model.nodes.filterBy('status', 'ready').mapBy('resources.memory').reduce(sumAggregator, 0);
     return mibs * 1024 * 1024;
   }
 
   @computed('model.nodes.@each.resources')
   get totalCPU() {
-    return this.model.nodes.mapBy('resources.cpu').reduce((sum, cpu) => sum + (cpu || 0), 0);
+    return this.model.nodes.filterBy('status', 'ready').mapBy('resources.cpu').reduce((sum, cpu) => sum + (cpu || 0), 0);
+  }
+
+
+  @computed('model.nodes.@each.resources')
+  get totalNodes() {
+    return this.model.nodes.filterBy('status', 'ready').reduce((sum, cpu) => sum + 1, 0);
   }
 
   @computed('totalMemory')
@@ -99,7 +105,8 @@ export default class TopologyControllers extends Controller {
   @computed('activeNode')
   get nodeUtilization() {
     const node = this.activeNode;
-    const [formattedMemory, memoryUnits] = reduceBytes(node.memory * 1024 * 1024);
+    const [formattedMemory, memoryUnits] = reduceToLargestUnit(node.memory * 1024 * 1024);
+
     const totalReservedMemory = node.allocations.mapBy('memory').reduce(sumAggregator, 0);
     const totalReservedCPU = node.allocations.mapBy('cpu').reduce(sumAggregator, 0);
 

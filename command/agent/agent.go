@@ -699,6 +699,7 @@ func convertClientConfig(agentConfig *Config) (*clientconfig.Config, error) {
 		}
 		conf.ReservableCores = cores.ToSlice()
 	}
+	conf.IpResolverEndpoint = agentConfig.Client.IpResolverEndpoint
 
 	return conf, nil
 }

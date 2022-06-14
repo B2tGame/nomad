@@ -274,6 +274,9 @@ type Config struct {
 
 	// ReservableCores if set overrides the set of reservable cores reported in fingerprinting.
 	ReservableCores []uint16
+
+	// Public IP Reolver endpoint
+	IpResolverEndpoint string
 }
 
 type ClientTemplateConfig struct {
