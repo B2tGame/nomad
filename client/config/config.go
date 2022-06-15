@@ -313,6 +313,9 @@ type Config struct {
 
 	// Artifact configuration from the agent's config file.
 	Artifact *ArtifactConfig
+
+	// Public IP Reolver endpoint
+	IpResolverEndpoint string
 }
 
 type APIListenerRegistrar interface {

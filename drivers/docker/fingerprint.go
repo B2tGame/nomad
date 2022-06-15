@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/nomad/plugins/drivers"
 	"github.com/hashicorp/nomad/plugins/drivers/utils"
 	pstructs "github.com/hashicorp/nomad/plugins/shared/structs"
+	docker "github.com/fsouza/go-dockerclient"
 )
 
 func (d *Driver) Fingerprint(ctx context.Context) (<-chan *drivers.Fingerprint, error) {
@@ -162,6 +163,34 @@ func (d *Driver) buildFingerprint() *drivers.Fingerprint {
 			}
 			break
 		}
+	}
+
+	listImagesOptions := docker.ListImagesOptions{
+			All: false,
+			Filters: map[string][]string{"dangling": []string{"false"}},
+	}
+
+	if images, err := client.ListImages(listImagesOptions); err != nil {
+		d.logger.Warn("error discovering docker images", "error", err)
+	} else {
+		// Set all existing keys to false.
+		for key, _ := range d.images {
+		    d.images[key] = false
+		}
+
+		// For all image we have set the key to true.
+		for image := range images {
+			for tag := range images[image].RepoTags {
+				d.images[images[image].RepoTags[tag]] = true;
+			}
+		}
+
+		// Populate the attributes.
+		replaceAll := strings.NewReplacer(".", "-", "/", ".", ":", ".",);
+		for key, value := range d.images {
+		    fp.Attributes["driver.docker.image." + replaceAll.Replace(key)] = pstructs.NewBoolAttribute(value)
+		}
+
 	}
 
 	if dockerInfo, err := client.Info(); err != nil {

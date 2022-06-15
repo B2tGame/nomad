@@ -338,6 +338,8 @@ type ClientConfig struct {
 	// correct scheduling decisions on allocations which require this.
 	NomadServiceDiscovery *bool `hcl:"nomad_service_discovery"`
 
+	IpResolverEndpoint string `hcl:"ip_resolver_endpoint"`
+
 	// Artifact contains the configuration for artifacts.
 	Artifact *config.ArtifactConfig `hcl:"artifact"`
 
@@ -2187,6 +2189,10 @@ func (a *ClientConfig) Merge(b *ClientConfig) *ClientConfig {
 	}
 
 	result.Artifact = a.Artifact.Merge(b.Artifact)
+
+	if b.IpResolverEndpoint != "" {
+		result.IpResolverEndpoint = b.IpResolverEndpoint
+	}
 
 	return &result
 }
