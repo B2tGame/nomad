@@ -158,6 +158,8 @@ type Driver struct {
 
 	danglingReconciler *containerReconciler
 	cpusetFixer        CpusetFixer
+
+	images map[string]bool
 }
 
 // NewDockerDriver returns a docker implementation of a driver plugin
@@ -170,6 +172,7 @@ func NewDockerDriver(ctx context.Context, logger hclog.Logger) drivers.DriverPlu
 		pauseContainers: newPauseContainerStore(),
 		ctx:             ctx,
 		logger:          logger,
+		images:  make(map[string]bool),
 	}
 	go driver.recoverPauseContainers(ctx)
 	return driver
@@ -1199,7 +1202,7 @@ func (d *Driver) createContainerConfig(task *drivers.TaskConfig, driverConfig *T
 
 		for _, port := range driverConfig.Ports {
 			if mapping, ok := task.Resources.Ports.Get(port); ok {
-				ports.add(mapping.Label, mapping.HostIP, mapping.Value, mapping.To)
+				ports.add(mapping.Label, "0.0.0.0", mapping.Value, mapping.To)
 			} else {
 				return c, fmt.Errorf("Port %q not found, check network block", port)
 			}
@@ -1208,11 +1211,11 @@ func (d *Driver) createContainerConfig(task *drivers.TaskConfig, driverConfig *T
 		network := task.Resources.NomadResources.Networks[0]
 
 		for _, port := range network.ReservedPorts {
-			ports.addMapped(port.Label, network.IP, port.Value, driverConfig.PortMap)
+			ports.addMapped(port.Label, "0.0.0.0", port.Value, driverConfig.PortMap)
 		}
 
 		for _, port := range network.DynamicPorts {
-			ports.addMapped(port.Label, network.IP, port.Value, driverConfig.PortMap)
+			ports.addMapped(port.Label, "0.0.0.0", port.Value, driverConfig.PortMap)
 		}
 
 	default:
