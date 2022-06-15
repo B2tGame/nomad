@@ -2248,7 +2248,7 @@ type NodeListStub struct {
 	Datacenter            string
 	Name                  string
 	Meta                  map[string]string
-	Attributes            map[string]string
+	//Attributes            map[string]string
 	NodeClass             string
 	Version               string
 	Drain                 bool
