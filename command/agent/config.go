@@ -325,11 +325,6 @@ type ClientConfig struct {
 	NomadServiceDiscovery *bool `hcl:"nomad_service_discovery"`
 
 	IpResolverEndpoint string `hcl:"ip_resolver_endpoint"`
-}
-
-// ClientTemplateConfig is configuration on the client specific to template
-// rendering
-type ClientTemplateConfig struct {
 
 	// Artifact contains the configuration for artifacts.
 	Artifact *config.ArtifactConfig `hcl:"artifact"`
