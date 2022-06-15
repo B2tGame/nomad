@@ -125,3 +125,7 @@ e2e/remotetasks/input/ecs.vars
 
 # local terraform overrides
 *.auto.tfvars
+
+
+# build resources
+command/agent/bindata_assetfs.go

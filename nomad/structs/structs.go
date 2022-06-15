@@ -2206,12 +2206,15 @@ func (n *Node) Stub(fields *NodeStubFields) *NodeListStub {
 		ID:                    n.ID,
 		Datacenter:            n.Datacenter,
 		Name:                  n.Name,
+		Meta:                  n.Meta,
+		Attributes:            n.Attributes,
 		NodeClass:             n.NodeClass,
 		Version:               n.Attributes["nomad.version"],
 		Drain:                 n.DrainStrategy != nil,
 		SchedulingEligibility: n.SchedulingEligibility,
 		Status:                n.Status,
 		StatusDescription:     n.StatusDescription,
+		StatusUpdatedAt:       n.StatusUpdatedAt,
 		Drivers:               n.Drivers,
 		HostVolumes:           n.HostVolumes,
 		LastDrain:             n.LastDrain,
@@ -2244,12 +2247,15 @@ type NodeListStub struct {
 	Attributes            map[string]string `json:",omitempty"`
 	Datacenter            string
 	Name                  string
+	Meta                  map[string]string
+	//Attributes            map[string]string
 	NodeClass             string
 	Version               string
 	Drain                 bool
 	SchedulingEligibility string
 	Status                string
 	StatusDescription     string
+	StatusUpdatedAt       int64
 	Drivers               map[string]*DriverInfo
 	HostVolumes           map[string]*ClientHostVolumeConfig
 	NodeResources         *NodeResources         `json:",omitempty"`
