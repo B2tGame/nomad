@@ -1,15 +1,31 @@
 
-First, you need to install Go from https://golang.org/dl/ (do not use apt!)
+Build instruction for Appland's patched version of Nomad.
 
-Then:
+While the instruction are expressed as a bash script, it's probably better that
+you read it and execute the commands manually.
+
 
 ```bash
+cd
+
+
+#
+# First, we need to install Go from https://golang.org/dl/
+# (The apt version is super old and won't work)
+#
+wget https://go.dev/dl/go1.18.3.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go
+sudo tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
+
+
 #
 # This is for Ubuntu 18.04 Bionic Beaver, which is what we have in AWS
 # You might need to adjust the packages name for your distro
 #
 sudo apt install gcc gcc-8-aarch64-linux-gnu
 
+
+#
 # Ensure that your PATH can reach both the compiler binaries, by
 # default in `/usr/local/bin/go`, and the Go packages binaries
 # which instead default to `$(go env GOPATH)/bin`
@@ -34,15 +50,13 @@ make bootstrap
 make dev-ui
 make prerelease
 make release
+
+
+#
+# These haven't been tested the slightest
+#
+# mv /usr/local/bin/nomad /usr/local/bin/nomad.old
+# sudo cp pkg/linux_amd64/nomad /usr/local/bin/nomad
+#
 ```
 
----
-
-Example how to do a simple build without update the UI:
-```bash
-export GOPATH=/workspace/go
-export PATH=$PATH:/opt/go/bin/:$GOPATH/bin:/opt/node-v14.15.4/bin
-make dev-ui
-make prerelease
-make release
-```
