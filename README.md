@@ -1,53 +1,48 @@
-Nomad [![Build Status](https://circleci.com/gh/hashicorp/nomad.svg?style=svg)](https://circleci.com/gh/hashicorp/nomad) [![Discuss](https://img.shields.io/badge/discuss-nomad-00BC7F?style=flat)](https://discuss.hashicorp.com/c/nomad)
-===
 
-<p align="center" style="text-align:center;">
-  <a href="https://nomadproject.io">
-    <img alt="HashiCorp Nomad logo" src="website/public/img/logo-hashicorp.svg" width="500" />
-  </a>
-</p>
+First, you need to install Go from https://golang.org/dl/ (do not use apt!)
 
-Nomad is a simple and flexible workload orchestrator to deploy and manage containers ([docker](https://www.nomadproject.io/docs/drivers/docker.html), [podman](https://www.nomadproject.io/docs/drivers/podman)), non-containerized applications ([executable](https://www.nomadproject.io/docs/drivers/exec.html), [Java](https://www.nomadproject.io/docs/drivers/java)), and virtual machines ([qemu](https://www.nomadproject.io/docs/drivers/qemu.html)) across on-prem and clouds at scale.
+Then:
 
-Nomad is supported on Linux, Windows, and macOS. A commercial version of Nomad, [Nomad Enterprise](https://www.nomadproject.io/docs/enterprise), is also available.
+```bash
+#
+# This is for Ubuntu 18.04 Bionic Beaver, which is what we have in AWS
+# You might need to adjust the packages name for your distro
+#
+sudo apt install gcc gcc-8-aarch64-linux-gnu
 
-* Website: https://nomadproject.io
-* Tutorials: [HashiCorp Learn](https://learn.hashicorp.com/nomad)
-* Forum: [Discuss](https://discuss.hashicorp.com/c/nomad)
-* Mailing List: [Google Groups](https://groups.google.com/group/nomad-tool)
-* Gitter: [hashicorp-nomad](https://gitter.im/hashicorp-nomad/Lobby)
+# Ensure that your PATH can reach both the compiler binaries, by
+# default in `/usr/local/bin/go`, and the Go packages binaries
+# which instead default to `$(go env GOPATH)/bin`
+#
+# You might need to add this command to your ~/.profile
+#
+export PATH=$PATH:/usr/local/go/bin/:$(/usr/local/go/bin/go env GOPATH)/bin
 
-Nomad provides several key features:
+sudo npm install -g yarn
 
-* **Deploy Containers and Legacy Applications**: Nomad’s flexibility as an orchestrator enables an organization to run containers, legacy, and batch applications together on the same infrastructure.  Nomad brings core orchestration benefits to legacy applications without needing to containerize via pluggable task drivers.
+cd $(go env GOPATH)
+git clone git@bitbucket.org:appland/nomad.git
+cd nomad
 
-* **Simple & Reliable**:  Nomad runs as a single binary and is entirely self contained - combining resource management and scheduling into a single system.  Nomad does not require any external services for storage or coordination.  Nomad automatically handles application, node, and driver failures.  Nomad is distributed and resilient, using leader election and state replication to provide high availability in the event of failures.
+git checkout appland-gpu-patches
 
-* **Device Plugins & GPU Support**: Nomad offers built-in support for GPU workloads such as machine learning (ML) and artificial intelligence (AI).  Nomad uses device plugins to automatically detect and utilize resources from hardware devices such as GPU, FPGAs, and TPUs.
+go get github.com/go-bindata/go-bindata/...
+go get github.com/elazarl/go-bindata-assetfs/...
+go get -u github.com/ugorji/go/codec/codecgen
 
-* **Federation for Multi-Region, Multi-Cloud**: Nomad was designed to support infrastructure at a global scale.  Nomad supports federation out-of-the-box and can deploy applications across multiple regions and clouds.
+make bootstrap
+make dev-ui
+make prerelease
+make release
+```
 
-* **Proven Scalability**: Nomad is optimistically concurrent, which increases throughput and reduces latency for workloads.  Nomad has been proven to scale to clusters of 10K+ nodes in real-world production environments.
-
-* **HashiCorp Ecosystem**: Nomad integrates seamlessly with Terraform, Consul, Vault for provisioning, service discovery, and secrets management.
-
-Quick Start
 ---
 
-#### Testing
-See [Learn: Getting Started](https://learn.hashicorp.com/collections/nomad/get-started) for instructions on setting up a local Nomad cluster for non-production use.
-
-Optionally, find Terraform manifests for bringing up a development Nomad cluster on a public cloud in the [`terraform`](terraform/) directory.
-
-#### Production
-See [Learn: Nomad Reference Architecture](https://learn.hashicorp.com/tutorials/nomad/production-reference-architecture-vm-with-consul?in=nomad/production) for recommended practices and a reference architecture for production deployments.
-
-Documentation
----
-Full, comprehensive documentation is available on the Nomad website: https://www.nomadproject.io/docs
-
-Guides are available on [HashiCorp Learn](https://learn.hashicorp.com/nomad).
-
-Contributing
---------------------
-See the [`contributing`](contributing/) directory for more developer documentation.
+Example how to do a simple build without update the UI:
+```bash
+export GOPATH=/workspace/go
+export PATH=$PATH:/opt/go/bin/:$GOPATH/bin:/opt/node-v14.15.4/bin
+make dev-ui
+make prerelease
+make release
+```
