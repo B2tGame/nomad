@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/nomad/helper/pointer"
+	docker "github.com/fsouza/go-dockerclient"
 	"github.com/hashicorp/nomad/plugins/drivers"
 	pstructs "github.com/hashicorp/nomad/plugins/shared/structs"
-	docker "github.com/fsouza/go-dockerclient"
 )
 
 func (d *Driver) Fingerprint(ctx context.Context) (<-chan *drivers.Fingerprint, error) {
@@ -155,8 +155,8 @@ func (d *Driver) buildFingerprint() *drivers.Fingerprint {
 	}
 
 	listImagesOptions := docker.ListImagesOptions{
-			All: false,
-			Filters: map[string][]string{"dangling": []string{"false"}},
+		All:     false,
+		Filters: map[string][]string{"dangling": []string{"false"}},
 	}
 
 	if images, err := client.ListImages(listImagesOptions); err != nil {
@@ -164,22 +164,31 @@ func (d *Driver) buildFingerprint() *drivers.Fingerprint {
 	} else {
 		// Set all existing keys to false.
 		for key, _ := range d.images {
-		    d.images[key] = false
+			d.images[key] = false
 		}
 
 		// For all image we have set the key to true.
 		for image := range images {
 			for tag := range images[image].RepoTags {
-				d.images[images[image].RepoTags[tag]] = true;
+				d.images[images[image].RepoTags[tag]] = true
 			}
 		}
-
 		// Populate the attributes.
-		replaceAll := strings.NewReplacer(".", "-", "/", ".", ":", ".",);
+		replaceAll := strings.NewReplacer(".", "-", "/", ".", ":", ".")
 		for key, value := range d.images {
-		    fp.Attributes["driver.docker.image." + replaceAll.Replace(key)] = pstructs.NewBoolAttribute(value)
+			fp.Attributes["driver.docker.image."+replaceAll.Replace(key)] = pstructs.NewBoolAttribute(value)
 		}
 
+		var emulatorAplicationTags []string
+		for _, img := range images {
+			for _, tag := range img.RepoTags {
+				if strings.Contains(tag, "emulator-container-application:") {
+					emulatorAplicationTags = append(emulatorAplicationTags, strings.Split(tag, ":")[1])
+				}
+			}
+		}
+		emulatorAplicationTagsString := strings.Join(emulatorAplicationTags, ",")
+		fp.Attributes["driver.docker.image.emulator-container-application-tags"] = pstructs.NewStringAttribute(emulatorAplicationTagsString)
 	}
 
 	if dockerInfo, err := client.Info(); err != nil {
