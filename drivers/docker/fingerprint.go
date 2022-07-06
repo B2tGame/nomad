@@ -183,7 +183,10 @@ func (d *Driver) buildFingerprint() *drivers.Fingerprint {
 		for _, img := range images {
 			for _, tag := range img.RepoTags {
 				if strings.Contains(tag, "emulator-container-application:") {
-					emulatorAplicationTags = append(emulatorAplicationTags, strings.Split(tag, ":")[1])
+					endTag := strings.Split(tag, ":")[1]
+					splitIndex := strings.Index(endTag, "-") + 1
+					lenght := len(endTag)
+					emulatorAplicationTags = append(emulatorAplicationTags, endTag[splitIndex:lenght])
 				}
 			}
 		}
