@@ -161,23 +161,7 @@ func (d *Driver) buildFingerprint() *drivers.Fingerprint {
 
 	if images, err := client.ListImages(listImagesOptions); err != nil {
 		d.logger.Warn("error discovering docker images", "error", err)
-	} else {
-		// Set all existing keys to false.
-		for key, _ := range d.images {
-			d.images[key] = false
-		}
-
-		// For all image we have set the key to true.
-		for image := range images {
-			for tag := range images[image].RepoTags {
-				d.images[images[image].RepoTags[tag]] = true
-			}
-		}
-		// Populate the attributes.
-		replaceAll := strings.NewReplacer(".", "-", "/", ".", ":", ".")
-		for key, value := range d.images {
-			fp.Attributes["driver.docker.image."+replaceAll.Replace(key)] = pstructs.NewBoolAttribute(value)
-		}
+	} 
 
 		var emulatorAplicationTags []string
 		for _, img := range images {
