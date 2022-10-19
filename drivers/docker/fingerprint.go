@@ -172,21 +172,22 @@ func (d *Driver) buildFingerprint() *drivers.Fingerprint {
 
 	if images, err := client.ListImages(listImagesOptions); err != nil {
 		d.logger.Warn("error discovering docker images", "error", err)
-	} 
+	} else {
 
-		var emulatorAplicationTags []string
+		var emulatorApplicationTags []string
 		for _, img := range images {
 			for _, tag := range img.RepoTags {
 				if strings.Contains(tag, "emulator-container-application:") {
 					endTag := strings.Split(tag, ":")[1]
 					splitIndex := strings.Index(endTag, "-") + 1
 					lenght := len(endTag)
-					emulatorAplicationTags = append(emulatorAplicationTags, endTag[splitIndex:lenght])
+					emulatorApplicationTags = append(emulatorApplicationTags, endTag[splitIndex:lenght])
 				}
 			}
 		}
-		emulatorAplicationTagsString := strings.Join(emulatorAplicationTags, ",")
-		fp.Attributes["driver.docker.image.emulator-container-application-tags"] = pstructs.NewStringAttribute(emulatorAplicationTagsString)
+	
+		emulatorApplicationTagsString := strings.Join(emulatorApplicationTags, ",")
+		fp.Attributes["driver.docker.image.emulator-container-application-tags"] = pstructs.NewStringAttribute(emulatorApplicationTagsString)
 	}
 
 	if dockerInfo, err := client.Info(); err != nil {
