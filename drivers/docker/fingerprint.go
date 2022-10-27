@@ -6,10 +6,11 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	docker "github.com/fsouza/go-dockerclient"
 	"github.com/hashicorp/nomad/helper"
 	"github.com/hashicorp/nomad/plugins/drivers"
 	pstructs "github.com/hashicorp/nomad/plugins/shared/structs"
-	docker "github.com/fsouza/go-dockerclient"
 )
 
 func (d *Driver) Fingerprint(ctx context.Context) (<-chan *drivers.Fingerprint, error) {
@@ -154,31 +155,28 @@ func (d *Driver) buildFingerprint() *drivers.Fingerprint {
 	}
 
 	listImagesOptions := docker.ListImagesOptions{
-			All: false,
-			Filters: map[string][]string{"dangling": []string{"false"}},
+		All:     false,
+		Filters: map[string][]string{"dangling": []string{"false"}},
 	}
 
 	if images, err := client.ListImages(listImagesOptions); err != nil {
 		d.logger.Warn("error discovering docker images", "error", err)
 	} else {
-		// Set all existing keys to false.
-		for key, _ := range d.images {
-		    d.images[key] = false
-		}
 
-		// For all image we have set the key to true.
-		for image := range images {
-			for tag := range images[image].RepoTags {
-				d.images[images[image].RepoTags[tag]] = true;
+		var emulatorApplicationTags []string
+		for _, img := range images {
+			for _, tag := range img.RepoTags {
+				if strings.Contains(tag, "emulator-container-application:") {
+					endTag := strings.Split(tag, ":")[1]
+					splitIndex := strings.Index(endTag, "-") + 1
+					lenght := len(endTag)
+					emulatorApplicationTags = append(emulatorApplicationTags, endTag[splitIndex:lenght])
+				}
 			}
 		}
-
-		// Populate the attributes.
-		replaceAll := strings.NewReplacer(".", "-", "/", ".", ":", ".",);
-		for key, value := range d.images {
-		    fp.Attributes["driver.docker.image." + replaceAll.Replace(key)] = pstructs.NewBoolAttribute(value)
-		}
-
+	
+		emulatorApplicationTagsString := strings.Join(emulatorApplicationTags, ",")
+		fp.Attributes["driver.docker.image.emulator-container-application-tags"] = pstructs.NewStringAttribute(emulatorApplicationTagsString)
 	}
 
 	if dockerInfo, err := client.Info(); err != nil {
