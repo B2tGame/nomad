@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/nomad/helper/pointer"
+	docker "github.com/fsouza/go-dockerclient"
 	"github.com/hashicorp/nomad/plugins/drivers"
 	pstructs "github.com/hashicorp/nomad/plugins/shared/structs"
 )
@@ -151,6 +152,31 @@ func (d *Driver) buildFingerprint() *drivers.Fingerprint {
 			}
 			break
 		}
+	}
+
+	listImagesOptions := docker.ListImagesOptions{
+		All:     false,
+		Filters: map[string][]string{"dangling": []string{"false"}},
+	}
+
+	if images, err := client.ListImages(listImagesOptions); err != nil {
+		d.logger.Warn("error discovering docker images", "error", err)
+	} else {
+
+		var emulatorApplicationTags []string
+		for _, img := range images {
+			for _, tag := range img.RepoTags {
+				if strings.Contains(tag, "emulator-container-application:") {
+					endTag := strings.Split(tag, ":")[1]
+					splitIndex := strings.Index(endTag, "-") + 1
+					lenght := len(endTag)
+					emulatorApplicationTags = append(emulatorApplicationTags, endTag[splitIndex:lenght])
+				}
+			}
+		}
+	
+		emulatorApplicationTagsString := strings.Join(emulatorApplicationTags, ",")
+		fp.Attributes["driver.docker.image.emulator-container-application-tags"] = pstructs.NewStringAttribute(emulatorApplicationTagsString)
 	}
 
 	if dockerInfo, err := client.Info(); err != nil {

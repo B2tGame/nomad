@@ -42,12 +42,13 @@ LAST_RELEASE ?= v1.4.2
 default: help
 
 ifeq (Linux,$(THIS_OS))
-ALL_TARGETS = linux_386 \
-	linux_amd64 \
-	linux_arm \
-	linux_arm64 \
-	windows_386 \
-	windows_amd64
+#ALL_TARGETS = linux_386 \
+#	linux_amd64 \
+#	linux_arm \
+#	linux_arm64 \
+#	windows_386 \
+#	windows_amd64
+ALL_TARGETS += linux_arm64 linux_amd64
 endif
 
 ifeq (s390x,$(THIS_ARCH))
@@ -100,6 +101,8 @@ ifeq (Darwin,$(THIS_OS))
 pkg/linux_%/nomad: CGO_ENABLED = 0
 endif
 
+pkg/linux_arm/nomad: CC = arm-linux-gnueabihf-gcc-5
+pkg/linux_arm64/nomad: CC = aarch64-linux-gnu-gcc-8
 pkg/windows_%/nomad: GO_OUT = $@.exe
 
 # Define package targets for each of the build targets we actually have on this system
