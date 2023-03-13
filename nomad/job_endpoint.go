@@ -1914,6 +1914,7 @@ func (j *Job) Dispatch(args *structs.JobDispatchRequest, reply *structs.JobDispa
 	dispatchJob.StatusDescription = ""
 	dispatchJob.DispatchIdempotencyToken = args.IdempotencyToken
 
+
 	// Merge in the meta data
 	for k, v := range args.Meta {
 		if dispatchJob.Meta == nil {
@@ -1921,6 +1922,45 @@ func (j *Job) Dispatch(args *structs.JobDispatchRequest, reply *structs.JobDispa
 		}
 		dispatchJob.Meta[k] = v
 	}
+
+	// Set job name to the edge node ID for make it easy to serach.
+	if dispatchJob.Meta != nil {
+		if value, valueExists := dispatchJob.Meta["NODE_ID"]; valueExists {
+			dispatchJob.Name = fmt.Sprintf("%s/%s", parameterizedJob.ID, value)
+		}
+	}
+
+	// Handle a basic parsing of parameterized of meta for supporting job meta in affinity and constraint.
+	if dispatchJob.ParameterizedJob != nil {
+		supportedMeta := append(dispatchJob.ParameterizedJob.MetaRequired, dispatchJob.ParameterizedJob.MetaOptional...)
+		for taskGroupIdx, taskGroup := range dispatchJob.TaskGroups {
+			for affinityIdx, affinity := range taskGroup.Affinities {
+				for _, metaKey := range supportedMeta {
+					if affinity.RTarget == "${NOMAD_META_" + metaKey + "}" {
+						if dispatchJob.Meta[metaKey] != "" {
+							dispatchJob.TaskGroups[taskGroupIdx].Affinities[affinityIdx].RTarget = dispatchJob.Meta[metaKey]
+						} else {
+							dispatchJob.TaskGroups[taskGroupIdx].Affinities[affinityIdx].Operand = "is_set"
+							dispatchJob.TaskGroups[taskGroupIdx].Affinities[affinityIdx].RTarget = ""
+						}
+					}
+				}
+			}
+			for constraintIdx, constraint := range taskGroup.Constraints {
+				for _, metaKey := range supportedMeta {
+					if constraint.RTarget == "${NOMAD_META_" + metaKey + "}" {
+						if dispatchJob.Meta[metaKey] != "" {
+							dispatchJob.TaskGroups[taskGroupIdx].Constraints[constraintIdx].RTarget = dispatchJob.Meta[metaKey]
+						} else {
+							dispatchJob.TaskGroups[taskGroupIdx].Constraints[constraintIdx].Operand = "is_set"
+							dispatchJob.TaskGroups[taskGroupIdx].Constraints[constraintIdx].RTarget = ""
+						}
+					}
+				}
+			}
+		}
+	}
+
 
 	// Compress the payload
 	dispatchJob.Payload = snappy.Encode(nil, args.Payload)

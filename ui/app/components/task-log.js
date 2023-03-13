@@ -45,7 +45,10 @@ export default class TaskLog extends Component {
     const allocation = this.get('allocation.id');
 
     const url = `/v1/client/fs/logs/${allocation}`;
-    return this.useServer ? url : `//${address}${url}`;
+
+    // Always use the proxy mode since no direct access to nomad will be accepted.
+    // return this.useServer ? url : `//${address}${url}`;
+    return url;
   }
 
   @computed('task', 'mode')
