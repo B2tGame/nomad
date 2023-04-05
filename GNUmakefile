@@ -49,7 +49,7 @@ PROTO_COMPARE_TAG ?= v1.0.3$(if $(findstring ent,$(GO_TAGS)),+ent,)
 
 # LAST_RELEASE is the git sha of the latest release corresponding to this branch. main should have the latest
 # published release, and release branches should point to the latest published release in the X.Y release line.
-LAST_RELEASE ?= v1.5.1
+LAST_RELEASE ?= v1.5.2
 
 default: help
 
@@ -60,7 +60,7 @@ ifeq (Linux,$(THIS_OS))
 #	linux_arm64 \
 #	windows_386 \
 #	windows_amd64
-ALL_TARGETS += linux_arm64 linux_amd64
+ALL_TARGETS = linux_amd64
 endif
 
 ifeq (s390x,$(THIS_ARCH))
