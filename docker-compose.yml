@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+  nomad-compiler:
+    platform: linux/amd64
+    image: custom-nomad
+    build: .
+    network_mode: host
+    volumes:
+      - ./pkg:/app/nomad/pkg
