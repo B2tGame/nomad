@@ -49,12 +49,7 @@ LAST_RELEASE ?= v1.6.2
 default: help
 
 ifeq (Linux,$(THIS_OS))
-ALL_TARGETS = linux_386 \
-	linux_amd64 \
-	linux_arm \
-	linux_arm64 \
-	windows_386 \
-	windows_amd64
+ALL_TARGETS = linux_amd64
 endif
 
 ifeq (s390x,$(THIS_ARCH))

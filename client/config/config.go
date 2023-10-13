@@ -325,6 +325,9 @@ type Config struct {
 
 	// ExtraAllocHooks are run with other allocation hooks, mainly for testing.
 	ExtraAllocHooks []interfaces.RunnerHook
+
+	// Public IP Reolver endpoint
+	IpResolverEndpoint string
 }
 
 type APIListenerRegistrar interface {
