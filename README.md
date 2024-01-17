@@ -58,6 +58,13 @@ make dev-ui # rerun this command if you made change in the nomad ui
 
 Compile nomad and uploaded it to s3
 
+Prerequisite: Install the following package to enable windows builds
+```bash
+sudo apt-get install gcc-mingw-w64
+```
+
+To compile:
+
 ```bash
 ./compile-nomad # the output will be in ./pkg/linux_amd64/nomad
 ```
