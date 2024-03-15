@@ -263,8 +263,9 @@ func eventFromChange(change memdb.Change) (structs.Event, bool) {
 			alloc.DeploymentID,
 		}
 
-		// remove job info to help keep size of alloc event down
-		alloc.Job = nil
+		// We need Job in allocations to get the region
+		// // remove job info to help keep size of alloc event down
+		// alloc.Job = nil
 
 		return structs.Event{
 			Topic:      structs.TopicAllocation,
